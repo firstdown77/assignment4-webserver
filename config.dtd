@@ -1,0 +1,31 @@
+<!ELEMENT server-config (threads,queues,type-handlers,welcome-file?,mime)>
+<!ATTLIST server-config 
+	base    CDATA #REQUIRED
+	port    CDATA #REQUIRED
+>
+
+<!ELEMENT threads (socket-readers,request-handlers)>
+<!ELEMENT socket-readers  (multi)>
+<!ELEMENT request-handlers (multi)>
+<!ELEMENT multi (#PCDATA)>
+
+
+<!ELEMENT queues (socket-queue,request-queue)>
+<!ELEMENT socket-queue (size)>
+<!ELEMENT request-queue (size)>
+<!ELEMENT size (#PCDATA)>
+
+<!ELEMENT type-handlers (type-handler*)>
+<!ELEMENT type-handler (parameter*, extension+)>
+<!ELEMENT parameter EMPTY>
+<!ATTLIST parameter name CDATA #REQUIRED>
+<!ATTLIST parameter value CDATA #REQUIRED>
+<!ATTLIST type-handler class CDATA #REQUIRED>
+<!ELEMENT extension (#PCDATA)>
+
+
+<!ELEMENT welcome-file (#PCDATA)>
+
+<!ELEMENT mime (mime-mapping*)>
+<!ELEMENT mime-mapping (extension,mime-type)>
+<!ELEMENT mime-type (#PCDATA)>
