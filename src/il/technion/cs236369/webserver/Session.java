@@ -1,22 +1,27 @@
 package il.technion.cs236369.webserver;
 
-public class Session implements ISession {
+import java.util.HashMap;
 
+public class Session implements ISession {
+	private HashMap<String, Object> nameToValMap = new HashMap<String, Object>();
+	
 	@Override
 	public void set(String name, Object val) {
-		// TODO Auto-generated method stub
-		
+		if (nameToValMap.containsKey(name)) {
+			nameToValMap.put(name, val);
+		}
+		else {
+			
+		}
 	}
 
 	@Override
 	public Object get(String name) {
-		// TODO Auto-generated method stub
-		return null;
+		return nameToValMap.get(name);
 	}
 
 	@Override
 	public void invalidate() {
-		// TODO Auto-generated method stub
-		
+		nameToValMap.clear();		
 	}
 }
