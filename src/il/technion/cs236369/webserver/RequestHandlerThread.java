@@ -43,7 +43,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-public class RequestHandlerThread extends Thread implements HttpRequestHandler{
+public class RequestHandlerThread extends Thread{
 	private String baseDir;
 	private HashMap<String, String> extensionsToMimeTypes;
 	private HashMap<String, String> paramNameToValues;
@@ -60,90 +60,37 @@ public class RequestHandlerThread extends Thread implements HttpRequestHandler{
 		typeHandlerExtensions = new HashSet<String>();
 		typeHandlerMapper();
 	}
+	
+	public void handlerWrapper() {
+		DefaultBHttpServerConnection conn = null;
+		Properties pToInclude = new Properties();
+		pToInclude.setProperty("classToDynamicallyLoad", classToDynamicallyLoad);
+		TypeHandler handler = new TypeHandler(pToInclude);
+		// Set up the HTTP protocol processor
+		HttpProcessor httpproc = HttpProcessorBuilder.create()
+		.add(new ResponseDate())
+		.add(new ResponseServer("Test/1.1"))
+		.add(new ResponseContent())
+		.add(new ResponseConnControl()).build();
+		// Set up request handler
+		UriHttpRequestHandlerMapper reqistry = new UriHttpRequestHandlerMapper();
+		reqistry.register("*", handler);
+		// Set up the HTTP service
+		HttpService httpService = new HttpService(httpproc, reqistry);
+		HttpContext coreContext = new BasicHttpContext(null);
 
-	@Override
-	public void handle(HttpRequest request, HttpResponse response, HttpContext arg2)
-			throws HttpException, IOException {
-
-		String uri = request.getRequestLine().getUri();
+		conn = new DefaultBHttpServerConnection(BUFSIZE);
 		try {
-			final File file = new File(baseDir, URLDecoder.decode(uri, "UTF-8"));
-			if (!file.exists()) {
-				response.setStatusCode(HttpStatus.SC_NOT_FOUND);
-				StringEntity entity = new StringEntity(
-						"<html><body><h1>File" + file.getPath() +
-						" not found</h1></body></html>",
-						ContentType.create("text/html", "UTF-8"));
-				response.setEntity(entity);
-				System.out.println("File " + file.getPath() + " not found");
-			} else if (!file.canRead() || uri.contains("..")) {
-				response.setStatusCode(HttpStatus.SC_FORBIDDEN);
-				StringEntity entity = new StringEntity(
-						"<html><body><h1>Access denied</h1></body></html>",
-						ContentType.create("text/html", "UTF-8"));
-				response.setEntity(entity);
-				System.out.println("Cannot read file " + file.getPath());
-			}
-			else if (file.isDirectory()) {
-				File[] listOfFiles = file.listFiles();
-				String htmlToReturn = "<html><body><ul>";
-			    for (int i = 0; i < listOfFiles.length; i++) {
-			    	htmlToReturn += "<li>" + listOfFiles[i].getName() + "</li>";
-			    }
-				htmlToReturn += "</ul></body></html>";
-				StringEntity entity = new StringEntity(
-						htmlToReturn,
-						ContentType.create("text/html", "UTF-8"));
-				response.setEntity(entity);
-				System.out.println("File is a directory " + file.getPath());
-			}
-			else {
-				String[] beenSplit = uri.split(".");
-				String extension = beenSplit[beenSplit.length - 1];
-				int questionMarkIndex = extension.indexOf("?");
-				int poundSignIndex = extension.indexOf("#");
-				if (questionMarkIndex != -1) {
-					extension = extension.substring(0, questionMarkIndex);
-				}
-				else if (poundSignIndex != -1){
-					extension = extension.substring(0, poundSignIndex);
-				}
-				if (typeHandlerExtensions.contains(extension)) {
-					
-					DefaultBHttpServerConnection conn = null;
-					Properties pToInclude = new Properties();
-					pToInclude.setProperty("classToDynamicallyLoad", classToDynamicallyLoad);
-					TypeHandler handler = new TypeHandler(pToInclude);
-					// Set up the HTTP protocol processor
-					HttpProcessor httpproc = HttpProcessorBuilder.create()
-					.add(new ResponseDate())
-					.add(new ResponseServer("Test/1.1"))
-					.add(new ResponseContent())
-					.add(new ResponseConnControl()).build();
-					// Set up request handler
-					UriHttpRequestHandlerMapper reqistry = new UriHttpRequestHandlerMapper();
-					reqistry.register("*", handler);
-					// Set up the HTTP service
-					HttpService httpService = new HttpService(httpproc, reqistry);
-					HttpContext coreContext = new BasicHttpContext(null);
-
-					conn = new DefaultBHttpServerConnection(BUFSIZE);
-					conn.bind(socket);
-
-					httpService.handleRequest(conn, coreContext);
-				}
-				else {
-					String mimeType = extensionsToMimeTypes.get(extension);
-	                response.setStatusCode(HttpStatus.SC_OK);
-	                FileEntity body = new FileEntity(file, ContentType.create(mimeType, (Charset) null));
-	                response.setEntity(body);
-	                System.out.println("Serving file " + file.getPath());
-				}
-			}
-		}catch (UnsupportedEncodingException e) {
+			conn.bind(socket);
+			httpService.handleRequest(conn, coreContext);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (HttpException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
 	}
 	
 	/**
