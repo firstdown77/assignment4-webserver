@@ -65,7 +65,7 @@ public class RequestHandlerThread extends Thread{
 		DefaultBHttpServerConnection conn = null;
 		Properties pToInclude = new Properties();
 		pToInclude.setProperty("classToDynamicallyLoad", classToDynamicallyLoad);
-		TypeHandler handler = new TypeHandler(pToInclude);
+		TypeHandler handler = new TSPEngine(pToInclude);
 		// Set up the HTTP protocol processor
 		HttpProcessor httpproc = HttpProcessorBuilder.create()
 		.add(new ResponseDate())
@@ -84,10 +84,8 @@ public class RequestHandlerThread extends Thread{
 			conn.bind(socket);
 			httpService.handleRequest(conn, coreContext);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (HttpException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -121,6 +119,8 @@ public class RequestHandlerThread extends Thread{
 			NodeList nl2 = (NodeList) xpath.compile("//type-handlers/type-handler").evaluate(
 					doc, XPathConstants.NODESET);
 			NamedNodeMap atts = nl2.item(0).getAttributes();
+			// TODO I am concerned that this will only pull one type-handler
+			// from the XML.
 			classToDynamicallyLoad = atts.item(0).getNodeValue();
 			NodeList map = nl2.item(0).getChildNodes();
 			for (int j = 0; j < map.getLength(); ++j) {

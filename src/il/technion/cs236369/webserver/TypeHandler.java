@@ -2,14 +2,18 @@ package il.technion.cs236369.webserver;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
 
+import javax.servlet.http.HttpServlet;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -17,20 +21,10 @@ import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.DefaultBHttpServerConnection;
-import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpProcessor;
-import org.apache.http.protocol.HttpProcessorBuilder;
 import org.apache.http.protocol.HttpRequestHandler;
-import org.apache.http.protocol.HttpService;
-import org.apache.http.protocol.ResponseConnControl;
-import org.apache.http.protocol.ResponseContent;
-import org.apache.http.protocol.ResponseDate;
-import org.apache.http.protocol.ResponseServer;
-import org.apache.http.protocol.UriHttpRequestHandlerMapper;
 
-public class TypeHandler implements HttpRequestHandler {
+public abstract class TypeHandler implements HttpRequestHandler {
 	private String baseDir;
 	private String classToDynamicallyLoad;
 	private HashSet<String> typeHandlerExtensions;
@@ -93,7 +87,8 @@ public class TypeHandler implements HttpRequestHandler {
 					extension = extension.substring(0, poundSignIndex);
 				}
 				if (typeHandlerExtensions.contains(extension)) {
-				
+	                response.setStatusCode(HttpStatus.SC_OK);
+	                HttpServlet h = new ServletLifecycleExample();
 				}
 				else {
 	                response.setStatusCode(HttpStatus.SC_OK);
@@ -106,5 +101,4 @@ public class TypeHandler implements HttpRequestHandler {
 			e.printStackTrace();
 		}		
 	}
-
 }
