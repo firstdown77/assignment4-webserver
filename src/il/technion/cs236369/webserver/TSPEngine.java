@@ -35,9 +35,11 @@ public class TSPEngine implements HttpRequestHandler {
 	private String mimeType;
 	private final JavaCompiler compiler;
 	private final StandardJavaFileManager manager;
+	private int timeout;
 	
 	public TSPEngine(Properties p) {
 		properties = p;
+		timeout = Integer.parseInt(p.getProperty("timeout"));
 		baseDir = p.getProperty("baseDir");
 		classToDynamicallyLoad = p.getProperty("classToDynamicallyLoad");
 		mimeType = p.getProperty("mimeType");
@@ -118,7 +120,7 @@ public class TSPEngine implements HttpRequestHandler {
 			Object o = a.newInstance();
 			System.out.println(o);
 			TSPTranslator t = (TSPTranslator) o;
-			t.translate(new PrintStream(f), new HashMap<String, String>(), new Session(r));
+			t.translate(new PrintStream(f), new HashMap<String, String>(), new Session(r, timeout));
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -138,10 +140,11 @@ public class TSPEngine implements HttpRequestHandler {
 			System.out.printf("Compilation successful!!!\n");
 		}
 
+		Class.forName(srcPath);
+
 		return manager.getClassLoader(
 				javax.tools.StandardLocation.CLASS_PATH).loadClass(
 						qualifiedClassName);
-		//Class.forName(qualifiedClassName);
 	}
 
 	@Override

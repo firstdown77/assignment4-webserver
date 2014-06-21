@@ -10,9 +10,12 @@ public class Session implements ISession {
 	private HashMap<String, Object> nameToValMap = new HashMap<String, Object>();
 	private boolean enabled = true;
 	private HttpResponse response;
+	private int timeout;
+	private long expiration;
 
-	public Session(HttpResponse r) {
+	public Session(HttpResponse r, int timeout) {
 		response = r;
+		this.timeout = timeout;
 	}
 	
 	/**
@@ -20,6 +23,21 @@ public class Session implements ISession {
 	 */
 	public HttpResponse getResponse() {
 		return response;
+	}
+	
+	public Date getExpirationDate() {
+		long currTimeMillis = System.currentTimeMillis();
+		long expiration = currTimeMillis + timeout;
+		Date d = new Date(expiration);
+		return d;
+	}
+	
+	public boolean isExpired() {
+		long currTimeMillis = System.currentTimeMillis();
+		if (currTimeMillis > expiration) {
+			return true;
+		}
+		return false;
 	}
 	
 	@Override
@@ -33,7 +51,9 @@ public class Session implements ISession {
 				//Example: Set-Cookie: UUID=067e6162-3b6f-4ae2-a171-2470b63dff00; Expires= Thu, 01-Jun-2014 00:00:01 GMT;
 				UUID uuid = UUID.randomUUID();
 				long currTimeMillis = System.currentTimeMillis();
-				Date d = new Date(currTimeMillis);
+				long expiration = currTimeMillis + timeout;
+				Date d = new Date(expiration);
+				this.expiration = expiration;
 				response.addHeader("Set-Cookie", uuid.toString() + "; Expires=" + d.toString());
 			}
 		}

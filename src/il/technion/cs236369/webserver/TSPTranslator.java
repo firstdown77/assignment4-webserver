@@ -25,29 +25,21 @@ public class TSPTranslator {
             IOUtils.copy(bodyContent, writer, "UTF-8");
             String bodyString = writer.toString();
             String compiledBody = "";
-            String toCompile = "";
-            boolean compile = false;
             for (int i = 0; i < bodyString.length(); i++){
                 char c = bodyString.charAt(i);  
                 if (c == '<' && bodyString.charAt(i+1) == '?') {
-                	compile = true;
-                	out.println(compiledBody);
+                	out.println(compiledBody.replace("\"", "\\\"").replace("\\", "\\\\"));
+                	compiledBody = "";
                 }
                 else if (c == '?' && bodyString.charAt(i+1) == '>') {
-                	compile = false;
-                	//compile(toCompile);
-                	toCompile = "";
+                	out.println(compiledBody);
+                	compiledBody = "";
                 }
-                if (compile) {
-                	toCompile += c;
-                }
-                else {
-                	compiledBody += c;
-                }
+                compiledBody += c;
 
             }
         } catch (IOException e) {
-        	
+        	e.printStackTrace();
         }
 
 	}
