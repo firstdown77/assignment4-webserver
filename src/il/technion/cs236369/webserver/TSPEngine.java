@@ -1,14 +1,16 @@
 package il.technion.cs236369.webserver;
 
+import il.technion.cs236369.webserver.examples.B;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 
 import javax.tools.JavaCompiler;
@@ -35,11 +37,11 @@ public class TSPEngine implements HttpRequestHandler {
 	private String mimeType;
 	private final JavaCompiler compiler;
 	private final StandardJavaFileManager manager;
-	private int timeout;
+	private String jre_path;
 	
 	public TSPEngine(Properties p) {
 		properties = p;
-		timeout = Integer.parseInt(p.getProperty("timeout"));
+		jre_path = p.getProperty("jre_path");
 		baseDir = p.getProperty("baseDir");
 		classToDynamicallyLoad = p.getProperty("classToDynamicallyLoad");
 		mimeType = p.getProperty("mimeType");
@@ -108,30 +110,28 @@ public class TSPEngine implements HttpRequestHandler {
 	                System.out.println("Serving file " + file.getPath());
 				}
 			}
-		}catch (UnsupportedEncodingException e) {
+		}catch (Exception e) {
 			e.printStackTrace();
 		}		
 	}
 	
-	private void compile(HttpResponse r, File f) {
-		try {
-			String fs = File.separatorChar + "";
-			Class<?> a = compileAndLoad(classToDynamicallyLoad.replace(".", fs), classToDynamicallyLoad);
-			Object o = a.newInstance();
-			System.out.println(o);
-			TSPTranslator t = (TSPTranslator) o;
-			t.translate(new PrintStream(f), new HashMap<String, String>(), new Session(r, timeout));
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
+	private void compile(HttpResponse r, File f) throws Exception {
+		String fs = File.separatorChar + "";
+		Class<?> a = compileAndLoad(classToDynamicallyLoad.replace(".", fs), classToDynamicallyLoad);
+		Object o = a.newInstance();
+		System.out.println(o);
+		TSPTranslator t = (TSPTranslator) o;
+		t.translate(new PrintStream(f), new HashMap<String, String>(),
+				new Session(r), new SessionManager());
 	}
 	
 	
-	public Class<?> compileAndLoad(String srcPath,String qualifiedClassName) throws ClassNotFoundException {
+	public Class<?> compileAndLoad(String srcPath,
+			String qualifiedClassName) throws ClassNotFoundException {
 		Iterable<? extends JavaFileObject> units = manager.getJavaFileObjects(srcPath);
-		Boolean status = compiler.getTask(null, manager, null,
-				Arrays.asList(new String[] { "-d", "bin" }), null, units)
+		List<String> optionsList = Arrays.asList(new String[] { "-d", "bin" });
+		optionsList.addAll(Arrays.asList("-classpath",jre_path));
+		Boolean status = compiler.getTask(null, manager, null, optionsList, null, units)
 				.call();
 		if (status == null || !status.booleanValue()) {
 			System.out.println("Compilation failed");
@@ -139,8 +139,9 @@ public class TSPEngine implements HttpRequestHandler {
 		} else {
 			System.out.printf("Compilation successful!!!\n");
 		}
-
-		Class.forName(srcPath);
+		
+		//TSPTranslator t = (TSPTranslator)Class.forName("il.technion.cs236369.webserver.TSPTranslator").
+		//.getConstructor(String.class).newInstance();
 
 		return manager.getClassLoader(
 				javax.tools.StandardLocation.CLASS_PATH).loadClass(

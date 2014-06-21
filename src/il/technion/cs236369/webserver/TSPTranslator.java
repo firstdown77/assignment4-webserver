@@ -13,10 +13,11 @@ import org.apache.http.entity.FileEntity;
 public class TSPTranslator {
 	
 	public TSPTranslator() {
-
+		//Intentionally empty constructor.
 	}
 
-	public void translate(PrintStream out, Map<String, String> params, Session session) {
+	public void translate(PrintStream out, Map<String, String> params,
+			Session session, SessionManager sessionManager) {
         try {
     		File file = null;
     		FileEntity body = new FileEntity(file);
