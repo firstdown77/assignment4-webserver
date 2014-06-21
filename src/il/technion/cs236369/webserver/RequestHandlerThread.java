@@ -1,11 +1,7 @@
 package il.technion.cs236369.webserver;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.Socket;
-import java.net.URLDecoder;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
@@ -19,18 +15,11 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.apache.http.HttpException;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.FileEntity;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.DefaultBHttpServerConnection;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpProcessorBuilder;
-import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.protocol.HttpService;
 import org.apache.http.protocol.ResponseConnControl;
 import org.apache.http.protocol.ResponseContent;
@@ -80,6 +69,7 @@ public class RequestHandlerThread extends Thread{
 		HttpContext coreContext = new BasicHttpContext(null);
 
 		conn = new DefaultBHttpServerConnection(BUFSIZE);
+		coreContext.setAttribute("baseDir", baseDir);
 		try {
 			conn.bind(socket);
 			httpService.handleRequest(conn, coreContext);
@@ -147,10 +137,5 @@ public class RequestHandlerThread extends Thread{
 		} catch (XPathExpressionException e) {
 			e.printStackTrace();
 		}
-	}
-	
-	public static void main(String[] args) {
-		/*RequestHandlerThread r = */
-		new RequestHandlerThread("", null);
 	}
 }

@@ -2,11 +2,12 @@ package il.technion.cs236369.webserver;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
-import java.net.Socket;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
 
@@ -30,7 +31,6 @@ public class TSPEngine implements HttpRequestHandler {
 	private String classToDynamicallyLoad;
 	private HashSet<String> typeHandlerExtensions;
     public final static int BUFSIZE = 8 * 1024;
-    private Socket socket;
 	Properties properties;
 	private String mimeType;
 	private final JavaCompiler compiler;
@@ -97,7 +97,7 @@ public class TSPEngine implements HttpRequestHandler {
 				}
 				if (typeHandlerExtensions.contains(extension)) {
 	                response.setStatusCode(HttpStatus.SC_OK);
-	                compile();
+	                compile(response, file);
 				}
 				else {
 	                response.setStatusCode(HttpStatus.SC_OK);
@@ -111,13 +111,14 @@ public class TSPEngine implements HttpRequestHandler {
 		}		
 	}
 	
-	private void compile() {
+	private void compile(HttpResponse r, File f) {
 		try {
 			String fs = File.separatorChar + "";
 			Class<?> a = compileAndLoad(classToDynamicallyLoad.replace(".", fs), classToDynamicallyLoad);
 			Object o = a.newInstance();
 			System.out.println(o);
 			TSPTranslator t = (TSPTranslator) o;
+			t.translate(new PrintStream(f), new HashMap<String, String>(), new Session(r));
 		}
 		catch (Exception e) {
 			e.printStackTrace();

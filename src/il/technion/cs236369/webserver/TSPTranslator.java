@@ -5,15 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.StringWriter;
-import java.net.URI;
-import java.util.Arrays;
 import java.util.Map;
-
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileObject;
-import javax.tools.SimpleJavaFileObject;
-import javax.tools.StandardJavaFileManager;
-import javax.tools.ToolProvider;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.FileEntity;
