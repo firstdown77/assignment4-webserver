@@ -40,6 +40,7 @@ public class RequestHandlerThread extends Thread{
 	private HashSet<String> typeHandlerExtensions;
     public final static int BUFSIZE = 8 * 1024;
     private Socket socket;
+    private String jre_path;
 	
 	public RequestHandlerThread(String baseDir, Socket s) {
 		socket = s;
@@ -48,12 +49,15 @@ public class RequestHandlerThread extends Thread{
 		paramNameToValues = new HashMap<String, String>();
 		typeHandlerExtensions = new HashSet<String>();
 		typeHandlerMapper();
+		handlerWrapper();
 	}
 	
 	public void handlerWrapper() {
 		DefaultBHttpServerConnection conn = null;
 		Properties pToInclude = new Properties();
 		pToInclude.setProperty("classToDynamicallyLoad", classToDynamicallyLoad);
+		pToInclude.setProperty("baseDir", baseDir);
+		pToInclude.setProperty("jre_path", jre_path);
 		TSPEngine handler = new TSPEngine(pToInclude);
 		// Set up the HTTP protocol processor
 		HttpProcessor httpproc = HttpProcessorBuilder.create()
@@ -69,7 +73,6 @@ public class RequestHandlerThread extends Thread{
 		HttpContext coreContext = new BasicHttpContext(null);
 
 		conn = new DefaultBHttpServerConnection(BUFSIZE);
-		coreContext.setAttribute("baseDir", baseDir);
 		try {
 			conn.bind(socket);
 			httpService.handleRequest(conn, coreContext);
@@ -124,7 +127,12 @@ public class RequestHandlerThread extends Thread{
 					Node name = map.item(j).getAttributes().item(0);
 					Node val = map.item(j).getAttributes().item(1);
 					if (val != null && name != null) {
-						paramNameToValues.put(name.getNodeValue(), val.getNodeValue());
+						String nameNodeValue = name.getNodeValue();
+						String valNodeValue = val.getNodeValue();
+						paramNameToValues.put(nameNodeValue, valNodeValue);
+						if (nameNodeValue.equals("jre_path")) {
+							jre_path = valNodeValue;
+						}
 					}
 				}
 			}
@@ -138,4 +146,8 @@ public class RequestHandlerThread extends Thread{
 			e.printStackTrace();
 		}
 	}
+	
+//	public static void main(String[] args) {
+//		new RequestHandlerThread(null, null);
+//	}
 }

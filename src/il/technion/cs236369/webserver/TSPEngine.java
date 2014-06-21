@@ -1,7 +1,5 @@
 package il.technion.cs236369.webserver;
 
-import il.technion.cs236369.webserver.examples.B;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -127,7 +125,7 @@ public class TSPEngine implements HttpRequestHandler {
 	
 	
 	public Class<?> compileAndLoad(String srcPath,
-			String qualifiedClassName) throws ClassNotFoundException {
+			String qualifiedClassName) throws Exception {
 		Iterable<? extends JavaFileObject> units = manager.getJavaFileObjects(srcPath);
 		List<String> optionsList = Arrays.asList(new String[] { "-d", "bin" });
 		optionsList.addAll(Arrays.asList("-classpath",jre_path));
@@ -140,8 +138,9 @@ public class TSPEngine implements HttpRequestHandler {
 			System.out.printf("Compilation successful!!!\n");
 		}
 		
-		//TSPTranslator t = (TSPTranslator)Class.forName("il.technion.cs236369.webserver.TSPTranslator").
-		//.getConstructor(String.class).newInstance();
+		//TODO: figure out how to use this:
+		TSPTranslator t = (TSPTranslator)Class.forName("il.technion.cs236369.webserver.TSPTranslator")
+		.getConstructor(String.class).newInstance();
 
 		return manager.getClassLoader(
 				javax.tools.StandardLocation.CLASS_PATH).loadClass(
