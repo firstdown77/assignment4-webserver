@@ -65,7 +65,7 @@ public class RequestHandlerThread extends Thread{
 		DefaultBHttpServerConnection conn = null;
 		Properties pToInclude = new Properties();
 		pToInclude.setProperty("classToDynamicallyLoad", classToDynamicallyLoad);
-		TypeHandler handler = new TSPEngine(pToInclude);
+		TSPEngine handler = new TSPEngine(pToInclude);
 		// Set up the HTTP protocol processor
 		HttpProcessor httpproc = HttpProcessorBuilder.create()
 		.add(new ResponseDate())

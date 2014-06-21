@@ -4,9 +4,23 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 
+import org.apache.http.HttpResponse;
+
 public class Session implements ISession {
 	private HashMap<String, Object> nameToValMap = new HashMap<String, Object>();
 	private boolean enabled = true;
+	private HttpResponse response;
+
+	public Session(HttpResponse r) {
+		response = r;
+	}
+	
+	/**
+	 * @return the response
+	 */
+	public HttpResponse getResponse() {
+		return response;
+	}
 	
 	@Override
 	public void set(String name, Object val) {
@@ -20,6 +34,7 @@ public class Session implements ISession {
 				UUID uuid = UUID.randomUUID();
 				long currTimeMillis = System.currentTimeMillis();
 				Date d = new Date(currTimeMillis);
+				response.addHeader("Set-Cookie", uuid.toString() + "; Expires=" + d.toString());
 			}
 		}
 	}
