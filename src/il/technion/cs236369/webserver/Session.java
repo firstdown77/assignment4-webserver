@@ -7,27 +7,26 @@ import java.util.UUID;
 import org.apache.http.HttpResponse;
 
 public class Session implements ISession {
+	private SessionManager manager;
+	String ID;
+	public String getID() {
+		return ID;
+	}
+
 	private HashMap<String, Object> nameToValMap = new HashMap<String, Object>();
 	private boolean enabled = true;
-	private HttpResponse response;
 	private int timeout;
 	private long expiration;
 
-	public Session(HttpResponse r, int timeout) {
-		response = r;
+	public Session(int timeout, SessionManager manager, String ID) {
+		this.manager = manager;
+		this.ID = ID;
 		this.timeout = timeout;
-	}
-	
-	/**
-	 * @return the response
-	 */
-	public HttpResponse getResponse() {
-		return response;
+		long currTimeMillis = System.currentTimeMillis();
+		this.expiration = currTimeMillis + timeout;
 	}
 	
 	public Date getExpirationDate() {
-		long currTimeMillis = System.currentTimeMillis();
-		long expiration = currTimeMillis + timeout;
 		Date d = new Date(expiration);
 		return d;
 	}
@@ -43,19 +42,10 @@ public class Session implements ISession {
 	@Override
 	public void set(String name, Object val) {
 		if (enabled) {
-			if (nameToValMap.containsKey(name)) {
+			
 				nameToValMap.put(name, val);
-			}
-			else {
-				//TODO add Set-Cookie header to response.
-				//Example: Set-Cookie: UUID=067e6162-3b6f-4ae2-a171-2470b63dff00; Expires= Thu, 01-Jun-2014 00:00:01 GMT;
-				UUID uuid = UUID.randomUUID();
-				long currTimeMillis = System.currentTimeMillis();
-				long expiration = currTimeMillis + timeout;
-				Date d = new Date(expiration);
-				this.expiration = expiration;
-				response.addHeader("Set-Cookie", uuid.toString() + "; Expires=" + d.toString());
-			}
+
+			
 		}
 	}
 
@@ -71,5 +61,6 @@ public class Session implements ISession {
 	public void invalidate() {
 		nameToValMap.clear();
 		enabled = false;
+		manager.invalidate(ID);
 	}
 }

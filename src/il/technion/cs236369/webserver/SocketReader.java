@@ -17,6 +17,7 @@ public class SocketReader extends Thread {
 	RequestQueue requestQueue;
 	boolean running = true;
 	public final static int BUFSIZE = 8 * 1024;
+	public final static int TIMEOUT = 5000;
 	String basedir;
 	
 	public SocketReader(String baseDir)
@@ -32,9 +33,11 @@ public class SocketReader extends Thread {
 		while (running)
 		{
 			Socket s = socketQueue.getSocket();
+			
 			DefaultBHttpServerConnection conn = new DefaultBHttpServerConnection(BUFSIZE);
 			try
 			{
+				s.setSoTimeout(TIMEOUT);
 				conn.bind(s);
 				HttpRequest request = conn.receiveRequestHeader();
 				
@@ -69,6 +72,7 @@ public class SocketReader extends Thread {
 			{
 				//TODO: Error back to the client?
 				ioe.printStackTrace(System.err);
+				try{s.close();}catch(Exception e){}
 			}
 		}
 	}

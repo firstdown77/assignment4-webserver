@@ -32,11 +32,11 @@ public class TSPEngine {
 		manager = compiler.getStandardFileManager(null, null, null);
 		if (manager == null)
 			throw new RuntimeException("compiler returned null file manager");
-		sessionManager = new SessionManager();
+		sessionManager = SessionManager.getInstance();
 	}
 	
 	/**
-	 * David, use this method to use the TSP handler.
+	 * 
 	 * @param request
 	 * @param params
 	 * @param session

@@ -33,7 +33,7 @@ public class WebServer extends AbstractWebServer {
 	Thread[] socketReaders;
 	Thread[] requestHandlers;
 	
-	private HashMap<String, String> extensionsToMimeTypes;
+	private HashMap<String, String> extensionsToMimeTypes = new HashMap<String, String>();
 	//private HashMap<String, String> paramNameToValues;
 	//private ArrayList<String> classToDynamicallyLoad = new ArrayList<String>();
 	private HashMap<String, String> extensionsToClass = new HashMap<String, String>();
@@ -100,9 +100,8 @@ public class WebServer extends AbstractWebServer {
 		requestHandlers = new Thread[numRequestHandlers];
 		for (int i=0; i < requestHandlers.length; i++)
 		{
-			//TODO: David: this was giving me syntax errors (RequestHandlerThread class is missing)
-			//so I commented it out temporarily.
-			//requestHandlers[i] = new RequestHandlerThread();
+			requestHandlers[i] = new RequestHandlerThread(baseDir, sessionTimeout, extensionsToMimeTypes, 
+					extensionsToClass, extensionsToJREPath);
 			requestHandlers[i].start();
 		}
 	}
