@@ -3,6 +3,7 @@ package il.technion.cs236369.webserver;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.URLDecoder;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.http.HttpRequest;
@@ -19,6 +20,7 @@ public class Request {
 	public Request(String uri, String postParams, Map<String, String> cookies, HttpRequest request, 
 			DefaultBHttpServerConnection conn, Socket socket)
 	{
+		this.getParameters = new HashMap<String, String>();
 		parseParameters(uri, postParams);
 		this.cookies = cookies;
 		this.request = request;
@@ -28,7 +30,7 @@ public class Request {
 	
 	private void parseParameters(String uri, String postParams)
 	{
-		String[] uriparts = uri.split("?");
+		String[] uriparts = uri.split("\\?");
 		if (uriparts.length > 0)
 		{
 			requestedPath = uriparts[0];
