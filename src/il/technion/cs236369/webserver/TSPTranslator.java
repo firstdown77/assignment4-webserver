@@ -1,14 +1,7 @@
 package il.technion.cs236369.webserver;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.Map;
-
-import org.apache.http.entity.FileEntity;
 
 public class TSPTranslator implements ITSPTranslator{
 	

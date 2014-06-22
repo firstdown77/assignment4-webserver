@@ -2,6 +2,7 @@ package il.technion.cs236369.webserver;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -42,11 +43,11 @@ public class TSPEngine {
 	 * @return
 	 */
 	public PrintStream handleTSP(Request request, Map<String, String> params, Session session) {
-		//String uri = request.getRequestedPath();
+		String uri = request.getRequestedPath();
 		try {
-			//final File file = new File(baseDir, URLDecoder.decode(uri, "UTF-8"));
-			File toReturn = new File("./toReturn");
-			return compile(request, toReturn, session, params);
+			final File file = new File(baseDir, URLDecoder.decode(uri, "UTF-8"));
+			PrintStream toReturn = compile(request, file, session, params);
+			return toReturn;
 		}catch (Exception e) {
 			e.printStackTrace();
 		}
