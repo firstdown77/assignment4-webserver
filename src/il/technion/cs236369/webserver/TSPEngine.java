@@ -16,6 +16,8 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
+import org.apache.http.Header;
+import org.apache.http.HeaderIterator;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -36,6 +38,8 @@ public class TSPEngine implements HttpRequestHandler {
 	private final JavaCompiler compiler;
 	private final StandardJavaFileManager manager;
 	private String jre_path;
+	private int counter = 0;
+	private SessionManager sessionManager;
 	
 	public TSPEngine(Properties p) {
 		properties = p;
@@ -49,6 +53,7 @@ public class TSPEngine implements HttpRequestHandler {
 		manager = compiler.getStandardFileManager(null, null, null);
 		if (manager == null)
 			throw new RuntimeException("compiler returned null file manager");
+		sessionManager = new SessionManager();
 	}
 	
 	@Override
@@ -99,7 +104,9 @@ public class TSPEngine implements HttpRequestHandler {
 				}
 				if (typeHandlerExtensions.contains(extension)) {
 	                response.setStatusCode(HttpStatus.SC_OK);
-	                compile(response, file);
+	                File toReturn = new File("toReturn");
+	                compile(request, response, toReturn);
+	                response.setEntity(new FileEntity(toReturn));
 				}
 				else {
 	                response.setStatusCode(HttpStatus.SC_OK);
@@ -113,20 +120,27 @@ public class TSPEngine implements HttpRequestHandler {
 		}		
 	}
 	
-	private void compile(HttpResponse r, File f) throws Exception {
+	private void compile(HttpRequest req, HttpResponse res, File fToReturn) throws Exception {
 		String fs = File.separatorChar + "";
 		Class<?> a = compileAndLoad(classToDynamicallyLoad.replace(".", fs), classToDynamicallyLoad);
 		Object o = a.newInstance();
-		System.out.println(o);
-		TSPTranslator t = (TSPTranslator) o;
-		t.translate(new PrintStream(f), new HashMap<String, String>(),
-				new Session(r), new SessionManager());
+		ITSPTranslator t = (ITSPTranslator) o;
+		PrintStream printStreamToUse = new PrintStream(fToReturn);
+        HeaderIterator hIterator = req.headerIterator();
+        HashMap<String, String> params = new HashMap<String, String>();
+        while (hIterator.hasNext()) {
+        	Header nextEle = hIterator.nextHeader();
+        	params.put(nextEle.getName(), nextEle.getValue());
+        }
+		t.translate(printStreamToUse, params,
+				new Session(res), sessionManager);
+		t = null;
 	}
 	
 	
 	public Class<?> compileAndLoad(String srcPath,
 			String qualifiedClassName) throws Exception {
-		Iterable<? extends JavaFileObject> units = manager.getJavaFileObjects(srcPath);
+		Iterable<? extends JavaFileObject> units = manager.getJavaFileObjects(srcPath+counter);
 		List<String> optionsList = Arrays.asList(new String[] { "-d", "bin" });
 		optionsList.addAll(Arrays.asList("-classpath",jre_path));
 		Boolean status = compiler.getTask(null, manager, null, optionsList, null, units)
@@ -137,14 +151,14 @@ public class TSPEngine implements HttpRequestHandler {
 		} else {
 			System.out.printf("Compilation successful!!!\n");
 		}
-		
-		//TODO: figure out how to use this:
-		TSPTranslator t = (TSPTranslator)Class.forName("il.technion.cs236369.webserver.TSPTranslator")
-		.getConstructor(String.class).newInstance();
+		Class<?> toReturn = Class.forName(qualifiedClassName + counter);
+		counter++;
+		return toReturn;
 
-		return manager.getClassLoader(
-				javax.tools.StandardLocation.CLASS_PATH).loadClass(
-						qualifiedClassName);
+		//TODO figure this out.
+//		return manager.getClassLoader(
+//				javax.tools.StandardLocation.CLASS_PATH).loadClass(
+//						qualifiedClassName);
 	}
 
 	@Override
