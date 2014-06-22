@@ -13,9 +13,9 @@ public class Session implements ISession {
 	private int timeout;
 	private long expiration;
 
-	public Session(HttpResponse r) {
+	public Session(HttpResponse r, int timeout) {
 		response = r;
-		this.timeout = 300000;
+		this.timeout = timeout;
 	}
 	
 	/**

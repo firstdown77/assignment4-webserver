@@ -40,11 +40,13 @@ public class TSPEngine implements HttpRequestHandler {
 	private String jre_path;
 	private int counter = 0;
 	private SessionManager sessionManager;
+	private int timeout;
 	
 	public TSPEngine(Properties p) {
 		properties = p;
 		jre_path = p.getProperty("jre_path");
 		baseDir = p.getProperty("baseDir");
+		timeout = Integer.parseInt(p.getProperty("timeout"));
 		classToDynamicallyLoad = p.getProperty("classToDynamicallyLoad");
 		mimeType = p.getProperty("mimeType");
 		compiler = ToolProvider.getSystemJavaCompiler();
@@ -107,6 +109,7 @@ public class TSPEngine implements HttpRequestHandler {
 	                File toReturn = new File("toReturn");
 	                compile(request, response, toReturn);
 	                response.setEntity(new FileEntity(toReturn));
+	                System.out.println("Serving file " + file.getPath());
 				}
 				else {
 	                response.setStatusCode(HttpStatus.SC_OK);
@@ -133,14 +136,14 @@ public class TSPEngine implements HttpRequestHandler {
         	params.put(nextEle.getName(), nextEle.getValue());
         }
 		t.translate(printStreamToUse, params,
-				new Session(res), sessionManager);
+				new Session(res, timeout), sessionManager);
 		t = null;
 	}
 	
 	
 	public Class<?> compileAndLoad(String srcPath,
 			String qualifiedClassName) throws Exception {
-		Iterable<? extends JavaFileObject> units = manager.getJavaFileObjects(srcPath+counter);
+		Iterable<? extends JavaFileObject> units = manager.getJavaFileObjects(srcPath);
 		List<String> optionsList = Arrays.asList(new String[] { "-d", "bin" });
 		optionsList.addAll(Arrays.asList("-classpath",jre_path));
 		Boolean status = compiler.getTask(null, manager, null, optionsList, null, units)
