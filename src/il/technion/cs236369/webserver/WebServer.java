@@ -4,9 +4,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Properties;
 
 import javax.net.ServerSocketFactory;
@@ -36,11 +34,11 @@ public class WebServer extends AbstractWebServer {
 	Thread[] requestHandlers;
 	
 	private HashMap<String, String> extensionsToMimeTypes;
-	private HashMap<String, String> paramNameToValues;
-	private ArrayList<String> classToDynamicallyLoad = new ArrayList<String>();
-	private HashMap<String, HashSet<String>> typeHandlerExtensions = new HashMap<String, HashSet<String>>();
-	private ArrayList<String> jre_path = new ArrayList<String>();
-    private int timeout;
+	//private HashMap<String, String> paramNameToValues;
+	//private ArrayList<String> classToDynamicallyLoad = new ArrayList<String>();
+	private HashMap<String, String> extensionsToClass = new HashMap<String, String>();
+	private HashMap<String, String> extensionsToJREPath = new HashMap<String, String>();
+	//private ArrayList<String> jre_path = new ArrayList<String>();
     
 	@Inject
 	public WebServer(ServerSocketFactory srvSockFactory, @Named("httpserver.net.port") int port,
@@ -102,7 +100,9 @@ public class WebServer extends AbstractWebServer {
 		requestHandlers = new Thread[numRequestHandlers];
 		for (int i=0; i < requestHandlers.length; i++)
 		{
-			requestHandlers[i] = new RequestHandlerThread();
+			//TODO: David: this was giving me syntax errors (RequestHandlerThread class is missing)
+			//so I commented it out temporarily.
+			//requestHandlers[i] = new RequestHandlerThread();
 			requestHandlers[i].start();
 		}
 	}
@@ -127,6 +127,7 @@ public class WebServer extends AbstractWebServer {
 		docFactory.setNamespaceAware(true);
 		DocumentBuilder builder;
 		try {
+			String currJREPath = null;
 			builder = docFactory.newDocumentBuilder();
 			Document doc = builder.parse("config.xml");
 			XPathFactory xpathFactory = XPathFactory.newInstance();
@@ -148,14 +149,16 @@ public class WebServer extends AbstractWebServer {
 			for (int k = 0; k < subNL2.getLength(); k++) {
 				Node currSubNL2 = subNL2.item(k);
 				NamedNodeMap atts = currSubNL2.getAttributes();
-				classToDynamicallyLoad.add(atts.item(0).getNodeValue());
+				String currClassToDynamicallyLoad = atts.item(0).getNodeValue();
+				//classToDynamicallyLoad.add(currClassToDynamicallyLoad);
 				NodeList map = nl2.item(0).getChildNodes();
 				for (int j = 0; j < map.getLength(); ++j) {
 					String lName = map.item(j).getLocalName();
 					if (lName != null && lName.equals("extension")) {
 						String extension = xpath.compile(".")
 								.evaluate(map.item(j));
-						typeHandlerExtensions.get(k).add(extension);
+						extensionsToClass.put(extension, currClassToDynamicallyLoad);
+						extensionsToJREPath.put(extension, currJREPath);
 					}
 					else if (lName != null) {
 						Node name = map.item(j).getAttributes().item(0);
@@ -163,42 +166,44 @@ public class WebServer extends AbstractWebServer {
 						if (val != null && name != null) {
 							String nameNodeValue = name.getNodeValue();
 							String valNodeValue = val.getNodeValue();
-							paramNameToValues.put(nameNodeValue, valNodeValue);
+							//paramNameToValues.put(nameNodeValue, valNodeValue);
 							if (nameNodeValue.equals("jre_path")) {
-								jre_path.add(valNodeValue);
+								//jre_path.add(valNodeValue);
+								currJREPath = valNodeValue;
 							}
 						}
 					}
 				}
 			}
-			NodeList nlThreadsSocketReaders = (NodeList) xpath.compile("//threads/socket-readers").evaluate(
-					doc, XPathConstants.NODESET);
-			for (int i = 0; i < nlThreadsSocketReaders.getLength(); ++i) {
-				String socketReaders = xpath.compile("./multi")
-						.evaluate(nlThreadsSocketReaders.item(i));
-				paramNameToValues.put("socketReaders", socketReaders);
-			}
-			NodeList nlThreadsRequestHandlers = (NodeList) xpath.compile("//threads/request-handlers").evaluate(
-					doc, XPathConstants.NODESET);
-			for (int i = 0; i < nlThreadsRequestHandlers.getLength(); ++i) {
-				String requestHandlers = xpath.compile("./multi")
-						.evaluate(nlThreadsRequestHandlers.item(i));
-				paramNameToValues.put("requestHandlers", requestHandlers);
-			}
-			NodeList nlSocketQueueSize = (NodeList) xpath.compile("//queues/socket-queue").evaluate(
-					doc, XPathConstants.NODESET);
-			for (int i = 0; i < nlSocketQueueSize.getLength(); ++i) {
-				String socketQueueSize = xpath.compile("./size")
-						.evaluate(nlSocketQueueSize.item(i));
-				paramNameToValues.put("socketQueueSize", socketQueueSize);
-			}
-			NodeList nlRequestQueueSize = (NodeList) xpath.compile("//threads/request-queue").evaluate(
-					doc, XPathConstants.NODESET);
-			for (int i = 0; i < nlRequestQueueSize.getLength(); ++i) {
-				String requestQueueSize = xpath.compile("./size")
-						.evaluate(nlRequestQueueSize.item(i));
-				paramNameToValues.put("requestQueueSize", requestQueueSize);
-			}
+			//We are getting these values from the injector instead:
+//			NodeList nlThreadsSocketReaders = (NodeList) xpath.compile("//threads/socket-readers").evaluate(
+//					doc, XPathConstants.NODESET);
+//			for (int i = 0; i < nlThreadsSocketReaders.getLength(); ++i) {
+//				String socketReaders = xpath.compile("./multi")
+//						.evaluate(nlThreadsSocketReaders.item(i));
+//				paramNameToValues.put("socketReaders", socketReaders);
+//			}
+//			NodeList nlThreadsRequestHandlers = (NodeList) xpath.compile("//threads/request-handlers").evaluate(
+//					doc, XPathConstants.NODESET);
+//			for (int i = 0; i < nlThreadsRequestHandlers.getLength(); ++i) {
+//				String requestHandlers = xpath.compile("./multi")
+//						.evaluate(nlThreadsRequestHandlers.item(i));
+//				paramNameToValues.put("requestHandlers", requestHandlers);
+//			}
+//			NodeList nlSocketQueueSize = (NodeList) xpath.compile("//queues/socket-queue").evaluate(
+//					doc, XPathConstants.NODESET);
+//			for (int i = 0; i < nlSocketQueueSize.getLength(); ++i) {
+//				String socketQueueSize = xpath.compile("./size")
+//						.evaluate(nlSocketQueueSize.item(i));
+//				paramNameToValues.put("socketQueueSize", socketQueueSize);
+//			}
+//			NodeList nlRequestQueueSize = (NodeList) xpath.compile("//threads/request-queue").evaluate(
+//					doc, XPathConstants.NODESET);
+//			for (int i = 0; i < nlRequestQueueSize.getLength(); ++i) {
+//				String requestQueueSize = xpath.compile("./size")
+//						.evaluate(nlRequestQueueSize.item(i));
+//				paramNameToValues.put("requestQueueSize", requestQueueSize);
+//			}
 			NodeList nlBasePath = (NodeList) xpath.compile("//server-config").evaluate(
 					doc, XPathConstants.NODESET);
 			NamedNodeMap atts2 = nlBasePath.item(0).getAttributes();
