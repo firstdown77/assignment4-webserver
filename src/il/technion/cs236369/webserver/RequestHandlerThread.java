@@ -149,13 +149,21 @@ public class RequestHandlerThread extends Thread{
 				NamedNodeMap atts = currSubNL2.getAttributes();
 				classToDynamicallyLoad.add(atts.item(0).getNodeValue());
 				NodeList map = nl2.item(k).getChildNodes();
-				System.out.println(map.getLength());
 				for (int j = 0; j < map.getLength(); ++j) {
 					String lName = map.item(j).getLocalName();
+					System.out.println(lName);
 					if (lName != null && lName.equals("extension")) {
 						String extension = xpath.compile(".")
 								.evaluate(map.item(j));
-						typeHandlerExtensions.get(k).add(extension);
+						if (typeHandlerExtensions.get(k) == null) {
+							int currIndex = classToDynamicallyLoad.size() - 1;
+							HashSet<String> hsToAdd = new HashSet<String>();
+							hsToAdd.add(extension);
+							typeHandlerExtensions.put(classToDynamicallyLoad.get(currIndex), hsToAdd);
+						}
+						else {
+							typeHandlerExtensions.get(k).add(extension);
+						}
 					}
 					else if (lName != null) {
 						Node name = map.item(j).getAttributes().item(0);
@@ -180,8 +188,5 @@ public class RequestHandlerThread extends Thread{
 		} catch (XPathExpressionException e) {
 			e.printStackTrace();
 		}
-	}
-	public static void main(String[] args) {
-		new RequestHandlerThread(null, 0);
 	}
 }
