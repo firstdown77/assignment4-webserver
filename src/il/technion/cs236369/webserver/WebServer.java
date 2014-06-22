@@ -147,32 +147,36 @@ public class WebServer extends AbstractWebServer {
 			NodeList subNL2 = nl2.item(0).getChildNodes();
 			for (int k = 0; k < subNL2.getLength(); k++) {
 				Node currSubNL2 = subNL2.item(k);
-				NamedNodeMap atts = currSubNL2.getAttributes();
-				String currClassToDynamicallyLoad = atts.item(0).getNodeValue();
-				//classToDynamicallyLoad.add(currClassToDynamicallyLoad);
-				NodeList map = nl2.item(0).getChildNodes();
-				for (int j = 0; j < map.getLength(); ++j) {
-					String lName = map.item(j).getLocalName();
-					if (lName != null && lName.equals("extension")) {
-						String extension = xpath.compile(".")
-								.evaluate(map.item(j));
-						extensionsToClass.put(extension, currClassToDynamicallyLoad);
-						extensionsToJREPath.put(extension, currJREPath);
-					}
-					else if (lName != null) {
-						Node name = map.item(j).getAttributes().item(0);
-						Node val = map.item(j).getAttributes().item(1);
-						if (val != null && name != null) {
-							String nameNodeValue = name.getNodeValue();
-							String valNodeValue = val.getNodeValue();
-							//paramNameToValues.put(nameNodeValue, valNodeValue);
-							if (nameNodeValue.equals("jre_path")) {
-								//jre_path.add(valNodeValue);
-								currJREPath = valNodeValue;
+				if (currSubNL2.getLocalName() != null) {
+					NamedNodeMap atts = currSubNL2.getAttributes();
+					String currClassToDynamicallyLoad = atts.item(0).getNodeValue();
+					System.out.println(currClassToDynamicallyLoad);
+					//classToDynamicallyLoad.add(currClassToDynamicallyLoad);
+					NodeList map = nl2.item(0).getChildNodes();
+					for (int j = 0; j < map.getLength(); ++j) {
+						String lName = map.item(j).getLocalName();
+						if (lName != null && lName.equals("extension")) {
+							String extension = xpath.compile(".")
+									.evaluate(map.item(j));
+							extensionsToClass.put(extension, currClassToDynamicallyLoad);
+							extensionsToJREPath.put(extension, currJREPath);
+						}
+						else if (lName != null) {
+							Node name = map.item(j).getAttributes().item(0);
+							Node val = map.item(j).getAttributes().item(1);
+							if (val != null && name != null) {
+								String nameNodeValue = name.getNodeValue();
+								String valNodeValue = val.getNodeValue();
+								//paramNameToValues.put(nameNodeValue, valNodeValue);
+								if (nameNodeValue.equals("jre_path")) {
+									//jre_path.add(valNodeValue);
+									currJREPath = valNodeValue;
+								}
 							}
 						}
 					}
 				}
+
 			}
 			//We are getting these values from the injector instead:
 //			NodeList nlThreadsSocketReaders = (NodeList) xpath.compile("//threads/socket-readers").evaluate(
