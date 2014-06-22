@@ -57,7 +57,7 @@ public class WebServer extends AbstractWebServer {
 
 	@Override
 	public void bind() throws IOException {
-		ssock = srvSockFactory.createServerSocket(port, sizeSocketQueue);
+		ssock = srvSockFactory.createServerSocket(port);
 	}
 
 	@Override
@@ -80,7 +80,7 @@ public class WebServer extends AbstractWebServer {
 					//Socket queue exceeded capacity. Return error to the client
 				}
 			} catch (IOException e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 			}
 		}
 	}
