@@ -15,7 +15,7 @@ import javax.tools.ToolProvider;
 
 public class TSPEngine {
 	private String baseDir;
-	private String classToDynamicallyLoad;
+	//Doubt this is needed: private String classToDynamicallyLoad;
 	private final JavaCompiler compiler;
 	private final StandardJavaFileManager manager;
 	private String jre_path;
@@ -25,7 +25,7 @@ public class TSPEngine {
 	public TSPEngine(Properties p) {
 		jre_path = p.getProperty("jre_path");
 		baseDir = p.getProperty("baseDir");
-		classToDynamicallyLoad = p.getProperty("classToDynamicallyLoad");
+		//classToDynamicallyLoad = p.getProperty("classToDynamicallyLoad");
 		compiler = ToolProvider.getSystemJavaCompiler();
 		if (compiler == null)
 			throw new RuntimeException("compiler not found");
@@ -46,7 +46,7 @@ public class TSPEngine {
 		String uri = request.getRequestedPath();
 		try {
 			final File file = new File(baseDir, URLDecoder.decode(uri, "UTF-8"));
-			PrintStream toReturn = compile(request, file, session, params);
+			PrintStream toReturn = compile(file, session, params);
 			return toReturn;
 		}catch (Exception e) {
 			e.printStackTrace();
@@ -54,10 +54,11 @@ public class TSPEngine {
 		return null;		
 	}
 	
-	private PrintStream compile(Request req, File fToReturn, Session session,
+	private PrintStream compile(File fToReturn, Session session,
 			Map<String, String> params) throws Exception {
 		String fs = File.separatorChar + "";
-		Class<?> a = compileAndLoad(classToDynamicallyLoad.replace(".", fs), classToDynamicallyLoad);
+		Class<?> a = compileAndLoad(fToReturn.getAbsolutePath().replace(".", fs),
+				fToReturn.getAbsolutePath());
 		Object o = a.newInstance();
 		ITSPTranslator t = (ITSPTranslator) o;
 		PrintStream printStreamToUse = new PrintStream(fToReturn);
@@ -98,11 +99,6 @@ public class TSPEngine {
 		Class<?> toReturn = Class.forName(qualifiedClassName + counter);
 		counter++;
 		return toReturn;
-
-		//TODO figure this out.
-//		return manager.getClassLoader(
-//				javax.tools.StandardLocation.CLASS_PATH).loadClass(
-//						qualifiedClassName);
 	}
 
 	@Override
