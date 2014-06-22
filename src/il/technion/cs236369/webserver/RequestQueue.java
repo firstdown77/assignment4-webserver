@@ -1,19 +1,58 @@
 package il.technion.cs236369.webserver;
 
-import java.util.LinkedList;
-import java.util.Queue;
-
-import org.apache.http.HttpRequest;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class RequestQueue {
-	private Queue<HttpRequest> requests = new LinkedList<HttpRequest>();
+	private static volatile RequestQueue instance = null;
+	private static int maxSize = 200;
 	
-	public void insert(HttpRequest r) {
-		requests.add(r);
+	private LinkedBlockingQueue<Request> queue;
+	
+	private RequestQueue()
+	{
+		queue = new LinkedBlockingQueue<Request>(getMaxSize());
 	}
 	
-	public HttpRequest remove() {
-		return requests.remove();
+	public static RequestQueue getInstance()
+	{
+		if (instance == null) {
+            synchronized (RequestQueue.class) {
+                // Double check
+                if (instance == null) {
+                    instance = new RequestQueue();
+                }
+            }
+        }
+        return instance;
+	}
+
+	public static int getMaxSize() {
+		return maxSize;
+	}
+
+	public static void setMaxSize(int maxSize) {
+		RequestQueue.maxSize = maxSize;
+	}
+	
+	public boolean insertRequest(Request r)
+	{
+		try {
+			queue.put(r);
+			return true;
+		} catch (InterruptedException e) {
+			return false;
+		}
+	}
+	
+	public Request getRequest()
+	{
+		try {
+			return queue.take();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 }
+
