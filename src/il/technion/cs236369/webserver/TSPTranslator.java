@@ -1,5 +1,8 @@
 package il.technion.cs236369.webserver;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.PrintStream;
 import java.util.Map;
 
@@ -14,21 +17,21 @@ public class TSPTranslator implements ITSPTranslator{
 	public void translate(PrintStream out, Map<String, String> params,
 			Session session, SessionManager sessionManager) {
 		//As suspected, this is all useless:
-//        try {
-//        	File fileToRead;
-//        	if (params.get("GET") != null) {
-//        		fileToRead = new File(params.get("GET"));
-//        	}
-//        	else if (params.get("POST") != null) {
-//        		fileToRead = new File(params.get("POST"));
-//        	}
-//        	else {
-//        		throw new IOException("There is no given file path.");
-//        	}
-//        	int curr = 0;
-//    		FileEntity body = new FileEntity(fileToRead);
-//            InputStream bodyContent = body.getContent();
-//            BufferedReader br = new BufferedReader(new InputStreamReader(bodyContent));
+
+//		BufferedReader br = new BufferedReader(new FileReader(new File("")));
+//		while (br.ready()) {
+//			String lineString = br.readLine();
+//          int scriptletStart = lineString.indexOf("<?");
+//          int scriptletEnd = lineString.indexOf("?>");
+//          boolean inScriptlet = false;
+//          if (!inScriptlet && scriptletStart == -1 && scriptletEnd == -1) {
+//        	  out.print(lineString);
+//          }
+//          else if (!inScriptlet && scriptletStart != -1 && scriptletEnd == -1) {
+//        	  inScriptlet = true;
+//        	  out.print(lineString.substring(0, scriptletStart));
+//          }
+
 //            boolean lineEndsWithScriptlet = false;
 //            while (br.ready()) {
 //                String lineString = br.readLine();

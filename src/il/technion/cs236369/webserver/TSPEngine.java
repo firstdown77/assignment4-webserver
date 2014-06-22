@@ -1,6 +1,8 @@
 package il.technion.cs236369.webserver;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.PrintStream;
 import java.net.URLDecoder;
 import java.util.Arrays;
@@ -58,7 +60,7 @@ public class TSPEngine {
 			Map<String, String> params) throws Exception {
 		String fs = File.separatorChar + "";
 		Class<?> a = compileAndLoad(fToReturn.getAbsolutePath().replace(".", fs),
-				fToReturn.getAbsolutePath());
+				"il.technion.cs236369.webserver.TSPTranslator");
 		Object o = a.newInstance();
 		ITSPTranslator t = (ITSPTranslator) o;
 		PrintStream printStreamToUse = new PrintStream(fToReturn);
@@ -74,7 +76,8 @@ public class TSPEngine {
 		Iterable<? extends JavaFileObject> units = manager.getJavaFileObjects(srcPath);
 		List<String> optionsList = Arrays.asList(new String[] { "-d", "bin" });
 		optionsList.addAll(Arrays.asList("-classpath",jre_path));
-		
+
+
 		/* For example: this is essentially what units are:
 		   StringWriter writer = new StringWriter();
 		    PrintWriter out = new PrintWriter(writer);
