@@ -17,7 +17,7 @@ import javax.tools.ToolProvider;
 
 public class TSPEngine {
 	private String baseDir;
-	//private String classToDynamicallyLoad;
+	//Doubt this is needed: private String classToDynamicallyLoad;
 	private final JavaCompiler compiler;
 	private final StandardJavaFileManager manager;
 	private String jre_path;
@@ -34,11 +34,11 @@ public class TSPEngine {
 		manager = compiler.getStandardFileManager(null, null, null);
 		if (manager == null)
 			throw new RuntimeException("compiler returned null file manager");
-		sessionManager = new SessionManager();
+		sessionManager = SessionManager.getInstance();
 	}
 	
 	/**
-	 * David, use this method to use the TSP handler.
+	 * 
 	 * @param request
 	 * @param params
 	 * @param session

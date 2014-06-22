@@ -5,19 +5,19 @@ import java.net.Socket;
 import java.net.URLDecoder;
 import java.util.Map;
 
-import org.apache.http.HttpConnection;
 import org.apache.http.HttpRequest;
+import org.apache.http.impl.DefaultBHttpServerConnection;
 
 public class Request {
 	private String requestedPath;
 	private Map<String, String> getParameters;
 	private Map<String, String> cookies;
 	private HttpRequest request;
-	private HttpConnection conn;
+	private DefaultBHttpServerConnection conn;
 	private Socket socket;
 	
 	public Request(String uri, String postParams, Map<String, String> cookies, HttpRequest request, 
-			HttpConnection conn, Socket socket)
+			DefaultBHttpServerConnection conn, Socket socket)
 	{
 		parseParameters(uri, postParams);
 		this.cookies = cookies;
@@ -64,11 +64,11 @@ public class Request {
 		this.request = request;
 	}
 
-	public HttpConnection getConn() {
+	public DefaultBHttpServerConnection getConn() {
 		return conn;
 	}
 
-	public void setConn(HttpConnection conn) {
+	public void setConn(DefaultBHttpServerConnection conn) {
 		this.conn = conn;
 	}
 
