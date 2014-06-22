@@ -35,8 +35,8 @@ import org.xml.sax.SAXException;
 
 public class RequestHandlerThread extends Thread{
 	private String baseDir;
-	private HashMap<String, String> extensionsToMimeTypes;
-	private HashMap<String, String> paramNameToValues;
+	private HashMap<String, String> extensionsToMimeTypes = new HashMap<String, String>();
+	private HashMap<String, String> paramNameToValues = new HashMap<String, String>();
 	private ArrayList<String> classToDynamicallyLoad = new ArrayList<String>();
 	private HashMap<String, HashSet<String>> typeHandlerExtensions = new HashMap<String, HashSet<String>>();
     public final static int BUFSIZE = 8 * 1024;
@@ -45,12 +45,9 @@ public class RequestHandlerThread extends Thread{
     private int timeout;
     private String port;
 	
-	public RequestHandlerThread(String baseDir, Socket s, int timeout) {
+	public RequestHandlerThread(Socket s, int timeout) {
 		this.timeout = timeout;
 		socket = s;
-		this.baseDir = baseDir;
-		extensionsToMimeTypes = new HashMap<String, String>();
-		paramNameToValues = new HashMap<String, String>();
 		typeHandlerMapper();
 		handlerWrapper();
 	}
@@ -86,7 +83,6 @@ public class RequestHandlerThread extends Thread{
 		} catch (HttpException e) {
 			e.printStackTrace();
 		}
-
 	}
 	
 	/**
@@ -103,46 +99,6 @@ public class RequestHandlerThread extends Thread{
 			Document doc = builder.parse("config.xml");
 			XPathFactory xpathFactory = XPathFactory.newInstance();
 			XPath xpath = xpathFactory.newXPath();
-
-			NodeList nl = (NodeList) xpath.compile("//mime/mime-mapping").evaluate(
-					doc, XPathConstants.NODESET);
-
-			for (int i = 0; i < nl.getLength(); ++i) {
-				String extension = xpath.compile("./extension")
-						.evaluate(nl.item(i));
-				String mime_type = xpath.compile("./mime-type")
-						.evaluate(nl.item(i));
-				extensionsToMimeTypes.put(extension, mime_type);
-			}
-			NodeList nl2 = (NodeList) xpath.compile("//type-handlers").evaluate(
-					doc, XPathConstants.NODESET);
-			NodeList subNL2 = nl2.item(0).getChildNodes();
-			for (int k = 0; k < subNL2.getLength(); k++) {
-				Node currSubNL2 = subNL2.item(k);
-				NamedNodeMap atts = currSubNL2.getAttributes();
-				classToDynamicallyLoad.add(atts.item(0).getNodeValue());
-				NodeList map = nl2.item(0).getChildNodes();
-				for (int j = 0; j < map.getLength(); ++j) {
-					String lName = map.item(j).getLocalName();
-					if (lName != null && lName.equals("extension")) {
-						String extension = xpath.compile(".")
-								.evaluate(map.item(j));
-						typeHandlerExtensions.get(k).add(extension);
-					}
-					else if (lName != null) {
-						Node name = map.item(j).getAttributes().item(0);
-						Node val = map.item(j).getAttributes().item(1);
-						if (val != null && name != null) {
-							String nameNodeValue = name.getNodeValue();
-							String valNodeValue = val.getNodeValue();
-							paramNameToValues.put(nameNodeValue, valNodeValue);
-							if (nameNodeValue.equals("jre_path")) {
-								jre_path.add(valNodeValue);
-							}
-						}
-					}
-				}
-			}
 			NodeList nlThreadsSocketReaders = (NodeList) xpath.compile("//threads/socket-readers").evaluate(
 					doc, XPathConstants.NODESET);
 			for (int i = 0; i < nlThreadsSocketReaders.getLength(); ++i) {
@@ -176,6 +132,45 @@ public class RequestHandlerThread extends Thread{
 			NamedNodeMap atts2 = nlBasePath.item(0).getAttributes();
 			baseDir = atts2.item(0).getNodeValue();
 			port = atts2.item(1).getNodeValue();
+			NodeList nl = (NodeList) xpath.compile("//mime/mime-mapping").evaluate(
+					doc, XPathConstants.NODESET);
+
+			for (int i = 0; i < nl.getLength(); ++i) {
+				String extension = xpath.compile("./extension")
+						.evaluate(nl.item(i));
+				String mime_type = xpath.compile("./mime-type")
+						.evaluate(nl.item(i));
+				extensionsToMimeTypes.put(extension, mime_type);
+			}
+			NodeList nl2 = (NodeList) xpath.compile("//type-handlers/type-handler").evaluate(
+					doc, XPathConstants.NODESET);
+			for (int k = 0; k < nl2.getLength(); k++) {
+				Node currSubNL2 = nl2.item(k);
+				NamedNodeMap atts = currSubNL2.getAttributes();
+				classToDynamicallyLoad.add(atts.item(0).getNodeValue());
+				NodeList map = nl2.item(k).getChildNodes();
+				System.out.println(map.getLength());
+				for (int j = 0; j < map.getLength(); ++j) {
+					String lName = map.item(j).getLocalName();
+					if (lName != null && lName.equals("extension")) {
+						String extension = xpath.compile(".")
+								.evaluate(map.item(j));
+						typeHandlerExtensions.get(k).add(extension);
+					}
+					else if (lName != null) {
+						Node name = map.item(j).getAttributes().item(0);
+						Node val = map.item(j).getAttributes().item(1);
+						if (val != null && name != null) {
+							String nameNodeValue = name.getNodeValue();
+							String valNodeValue = val.getNodeValue();
+							paramNameToValues.put(nameNodeValue, valNodeValue);
+							if (nameNodeValue.equals("jre_path")) {
+								jre_path.add(valNodeValue);
+							}
+						}
+					}
+				}
+			}
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();
 		} catch (SAXException e) {
@@ -185,5 +180,8 @@ public class RequestHandlerThread extends Thread{
 		} catch (XPathExpressionException e) {
 			e.printStackTrace();
 		}
+	}
+	public static void main(String[] args) {
+		new RequestHandlerThread(null, 0);
 	}
 }
