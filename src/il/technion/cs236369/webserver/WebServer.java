@@ -150,9 +150,7 @@ public class WebServer extends AbstractWebServer {
 				if (currSubNL2.getLocalName() != null) {
 					NamedNodeMap atts = currSubNL2.getAttributes();
 					String currClassToDynamicallyLoad = atts.item(0).getNodeValue();
-					System.out.println(currClassToDynamicallyLoad);
-					//classToDynamicallyLoad.add(currClassToDynamicallyLoad);
-					NodeList map = nl2.item(0).getChildNodes();
+					NodeList map = currSubNL2.getChildNodes();
 					for (int j = 0; j < map.getLength(); ++j) {
 						String lName = map.item(j).getLocalName();
 						if (lName != null && lName.equals("extension")) {
