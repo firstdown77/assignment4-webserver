@@ -237,10 +237,10 @@ public class WebServer extends AbstractWebServer {
 //						.evaluate(nlRequestQueueSize.item(i));
 //				paramNameToValues.put("requestQueueSize", requestQueueSize);
 //			}
-			NodeList nlBasePath = (NodeList) xpath.compile("//server-config").evaluate(
-					doc, XPathConstants.NODESET);
-			NamedNodeMap atts2 = nlBasePath.item(0).getAttributes();
-			baseDir = atts2.item(0).getNodeValue();
+//			NodeList nlBasePath = (NodeList) xpath.compile("//server-config").evaluate(
+//					doc, XPathConstants.NODESET);
+//			NamedNodeMap atts2 = nlBasePath.item(0).getAttributes();
+			//baseDir = atts2.item(0).getNodeValue();
 			//port = Integer.parseInt(atts2.item(1).getNodeValue());
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();
