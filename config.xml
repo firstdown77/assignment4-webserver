@@ -18,7 +18,7 @@
 		</request-queue>
 	</queues>
 	<type-handlers>
-		<type-handler class="cs236369.webserver.TSPEngine">
+		<type-handler class="il.technion.cs236369.webserver.TSPEngine">
 			<parameter name="jre_path" value="C:\Program Files\Java\jdk1.6.0_24\" />
 			<extension>tsp</extension>
 			<extension>dsp</extension>

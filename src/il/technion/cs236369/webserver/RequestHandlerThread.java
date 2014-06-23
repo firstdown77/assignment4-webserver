@@ -55,7 +55,6 @@ public class RequestHandlerThread extends Thread{
 	
 				HttpRequest request = r.getRequest();
 				String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
-				
 				File f = new File(r.getRequestedPath());
 				if (f.exists())
 				{
