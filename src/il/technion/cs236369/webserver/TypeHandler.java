@@ -1,6 +1,8 @@
 package il.technion.cs236369.webserver;
 
+import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.HashMap;
 import java.util.Map;
 
 public interface TypeHandler {
@@ -12,5 +14,5 @@ public interface TypeHandler {
 	 * @param urlQueryParameters
 	 * @param out
 	 */
-	PrintStream handle(Request request, Map<String, String> urlQueryParameters, Session session);
+	OutputStream handle(Request request, HashMap<String, String> urlQueryParameters, Session session);
 }

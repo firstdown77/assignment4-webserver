@@ -1,6 +1,7 @@
 package il.technion.cs236369.webserver;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.text.SimpleDateFormat;
@@ -169,7 +170,7 @@ public class RequestHandlerThread extends Thread{
 		conn.sendResponseEntity(response);
 	}
 	
-	private void sendHtml(DefaultBHttpServerConnection conn, PrintStream p, String newCookie) throws Exception
+	private void sendHtml(DefaultBHttpServerConnection conn, OutputStream p, String newCookie) throws Exception
 	{
 		HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
 		        HttpStatus.SC_OK, "OK") ;
@@ -233,7 +234,7 @@ public class RequestHandlerThread extends Thread{
 			newCookie = "UUID="+s.getID()+"; Expires="+dateFormat.format(s.getExpirationDate())+";";
 		}
 		
-		PrintStream ps = handler.handle(request, request.getGetParameters(), s);
+		OutputStream ps = handler.handle(request, (HashMap<String, String>)request.getGetParameters(), s);
 		sendHtml(request.getConn(), ps, newCookie);
 	}
 	

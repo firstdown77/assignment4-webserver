@@ -1,15 +1,21 @@
 package il.technion.cs236369.webserver;
 
-import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.Method;
 import java.net.URLDecoder;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
@@ -22,13 +28,11 @@ public class TSPEngine implements TypeHandler{
 	private final JavaCompiler compiler;
 	private final StandardJavaFileManager manager;
 	private String jre_path;
-	private int counter = 0;
 	private SessionManager sessionManager;
 	
 	public TSPEngine(Properties p) {
 		jre_path = p.getProperty("jre_path");
-		baseDir = p.getProperty("baseDir");
-		//classToDynamicallyLoad = p.getProperty("classToDynamicallyLoad");
+		this.baseDir = p.getProperty("baseDir");
 		compiler = ToolProvider.getSystemJavaCompiler();
 		if (compiler == null)
 			throw new RuntimeException("compiler not found");
@@ -39,66 +43,106 @@ public class TSPEngine implements TypeHandler{
 	}
 	
 	@Override
-	public PrintStream handle(Request request, Map<String, String> urlQueryParameters, Session session)
+	public OutputStream handle(Request request, HashMap<String, String> urlQueryParameters, Session session)
 	{
-		return handleTSP(request, urlQueryParameters, session);
+		return parse(request.getRequestedPath(), urlQueryParameters, session);
 	}
 	
-	/**
-	 * 
-	 * @param request
-	 * @param params
-	 * @param session
-	 * @return
-	 */
-	public PrintStream handleTSP(Request request, Map<String, String> params, Session session) {
-		String uri = request.getRequestedPath();
+	private OutputStream parse(String tspPath, HashMap<String, String> params, Session session)
+	{
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos);
+		String uri = tspPath;
+		String id = UUID.randomUUID().toString().replace("-", "_");
+		String filePath = baseDir+File.separator+"Printer"+id+".java";
+		String objPath = "bin"+File.separator+"Printer"+id+".class";
 		try {
-			final File file = new File(baseDir, URLDecoder.decode(uri, "UTF-8"));
-			PrintStream toReturn = compile(file, session, params);
-			return toReturn;
+			final File file = new File(URLDecoder.decode(uri, "UTF-8"));
+			if ((!file.exists())||(!file.isFile()))
+				return ps;
+			String contents;
+			byte[] encoded = Files.readAllBytes(Paths.get(tspPath));
+			contents = new String(encoded, Charset.defaultCharset());
+			int index = contents.indexOf("<?");
+			int endIndex = 0;
+			int lastIndex = 0;
+			StringBuilder javaCode = new StringBuilder(); 
+			javaCode.append("public class Printer"+id+"{");
+			javaCode.append("public void printHtml(java.io.PrintStream out, java.util.HashMap<String, String> params, il.technion.cs236369.webserver.Session session, il.technion.cs236369.webserver.SessionManager sessionManager){");
+			
+			while (index > -1)
+			{
+				if (index > lastIndex)
+					javaCode.append("out.print(\""+contents.substring(lastIndex, index).replace("\"", "\\\"").
+					replace("\\","\\\\").replace("\n", "\\n\");\n out.print(\"")+"\");");
+				endIndex = contents.indexOf("?>", index);
+				if (endIndex == -1)
+					throw new Exception ("Parsing error");
+				javaCode.append("\n");
+				javaCode.append(contents.substring(index+2, endIndex));
+				javaCode.append("\n");
+				
+				index = contents.indexOf("<?", endIndex);
+				lastIndex = endIndex+2;
+			}
+			
+			if (endIndex < contents.length())
+				javaCode.append("out.print(\""+contents.substring(endIndex+2).replace("\"", "\\\"").
+				replace("\\","\\\\").replace("\n", "\\n\");\n out.print(\"")+"\");");
+			
+			
+			javaCode.append("}}");
+		
+			
+			if (createJavaFile(javaCode.toString(), filePath))
+			{
+				Class<?> generatedClass = compileAndLoad(filePath, "Printer"+id);
+				Object printer = generatedClass.getConstructor().newInstance();
+				Method method = generatedClass.getMethod("printHtml", PrintStream.class, java.util.HashMap.class, Session.class, SessionManager.class);
+				method.invoke(printer, ps, params, session, sessionManager);
+			}
+			
+			
 		}catch (Exception e) {
 			e.printStackTrace();
+		}finally{
+			File f = new File(filePath);
+			if (f.exists()) f.delete();
+			f = new File(objPath);
+			if (f.exists()) f.delete();
 		}
-		return null;		
+		return baos;
 	}
 	
-	private PrintStream compile(File fToReturn, Session session,
-			Map<String, String> params) throws Exception {
-		String fs = File.separatorChar + "";
-		Class<?> a = compileAndLoad(fToReturn.getAbsolutePath().replace(".", fs),
-				"il.technion.cs236369.webserver.TSPTranslator");
-		Object o = a.newInstance();
-		ITSPTranslator t = (ITSPTranslator) o;
-		PrintStream printStreamToUse = new PrintStream(fToReturn);
-		t.translate(printStreamToUse, params,
-				session, sessionManager);
-		t = null;
-		return printStreamToUse;
+	private boolean createJavaFile(String content, String path)
+	{
+		BufferedWriter writer = null;
+		try
+		{
+		    writer = new BufferedWriter(new FileWriter(path));
+		    writer.write(content);
+		    return true;
+		}
+		catch ( IOException e)
+		{
+			return false;
+		}
+		finally
+		{
+		    try
+		    {
+		        if ( writer != null)
+		        writer.close( );
+		    }
+		    catch ( IOException e){}
+		}
 	}
 	
-	
-	public Class<?> compileAndLoad(String srcPath,
-			String qualifiedClassName) throws Exception {
-		Iterable<? extends JavaFileObject> units = manager.getJavaFileObjects(srcPath);
-		List<String> optionsList = Arrays.asList(new String[] { "-d", "bin" });
-		optionsList.addAll(Arrays.asList("-classpath",jre_path));
-
-
-		/* For example: this is essentially what units are:
-		   StringWriter writer = new StringWriter();
-		    PrintWriter out = new PrintWriter(writer);
-		    out.println("public class HelloWorld {");
-		    out.println("  public static void main(String args[]) {");
-		    out.println("    System.out.println(\"This is in another java file\");");    
-		    out.println("  }");
-		    out.println("}");
-		    out.close();
-		    JavaFileObject file = new JavaSourceFromString("HelloWorld", writer.toString());
-		    Iterable<? extends JavaFileObject> units = Arrays.asList(file);
-		    */
-		
-		Boolean status = compiler.getTask(null, manager, null, optionsList, null, units)
+	private Class<?> compileAndLoad(String srcPath,String qualifiedClassName) throws ClassNotFoundException {
+		Iterable<? extends JavaFileObject> units = manager
+				.getJavaFileObjects(srcPath);
+		Boolean status = compiler.getTask(null, manager, null,
+				Arrays.asList(new String[] { "-d", "bin" }), null, units)
 				.call();
 		if (status == null || !status.booleanValue()) {
 			System.out.println("Compilation failed");
@@ -106,11 +150,12 @@ public class TSPEngine implements TypeHandler{
 		} else {
 			System.out.printf("Compilation successful!!!\n");
 		}
-		Class<?> toReturn = Class.forName(qualifiedClassName + counter);
-		counter++;
-		return toReturn;
-	}
 
+		return manager.getClassLoader(
+				javax.tools.StandardLocation.CLASS_PATH).loadClass(
+						qualifiedClassName);
+	}
+	
 	@Override
 	protected void finalize() throws Throwable {
 		if (manager != null)

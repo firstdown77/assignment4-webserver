@@ -8,6 +8,11 @@ import org.apache.http.HttpResponse;
 
 public class Session implements ISession {
 	private SessionManager manager;
+	public SessionManager getManager() {
+		return manager;
+	}
+
+
 	String ID;
 	public String getID() {
 		return ID;
@@ -26,12 +31,12 @@ public class Session implements ISession {
 		this.expiration = currTimeMillis + timeout;
 	}
 	
-	public Date getExpirationDate() {
+	public synchronized Date getExpirationDate() {
 		Date d = new Date(expiration);
 		return d;
 	}
 	
-	public boolean isExpired() {
+	public synchronized boolean isExpired() {
 		long currTimeMillis = System.currentTimeMillis();
 		if (currTimeMillis > expiration) {
 			return true;
@@ -40,7 +45,7 @@ public class Session implements ISession {
 	}
 	
 	@Override
-	public void set(String name, Object val) {
+	public synchronized void set(String name, Object val) {
 		if (enabled) {
 			
 				nameToValMap.put(name, val);
@@ -50,7 +55,7 @@ public class Session implements ISession {
 	}
 
 	@Override
-	public Object get(String name) {
+	public synchronized Object get(String name) {
 		if (enabled) {
 			return nameToValMap.get(name);
 		}
@@ -58,7 +63,7 @@ public class Session implements ISession {
 	}
 
 	@Override
-	public void invalidate() {
+	public synchronized void invalidate() {
 		nameToValMap.clear();
 		enabled = false;
 		manager.invalidate(ID);
