@@ -1,9 +1,7 @@
 package il.technion.cs236369.webserver;
 
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.util.HashMap;
-import java.util.Map;
 
 public interface TypeHandler {
 

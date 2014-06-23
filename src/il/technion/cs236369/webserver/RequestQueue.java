@@ -13,6 +13,10 @@ public class RequestQueue {
 		queue = new LinkedBlockingQueue<Request>(getMaxSize());
 	}
 	
+	/**
+	 * Gets the instance of the request queue.
+	 * @return
+	 */
 	public static RequestQueue getInstance()
 	{
 		if (instance == null) {
@@ -26,14 +30,27 @@ public class RequestQueue {
         return instance;
 	}
 
+	/**
+	 * The max size of the request queue getter.
+	 * @return The max size of the request queue.
+	 */
 	public static int getMaxSize() {
 		return maxSize;
 	}
 
+	/**
+	 * Request queue max size setter.
+	 * @param maxSize The max size to set.
+	 */
 	public static void setMaxSize(int maxSize) {
 		RequestQueue.maxSize = maxSize;
 	}
 	
+	/**
+	 * Insert a new request into the request queue.
+	 * @param r The request to insert.
+	 * @return Whether the insertion was successful or not.
+	 */
 	public boolean insertRequest(Request r)
 	{
 		try {
@@ -44,6 +61,10 @@ public class RequestQueue {
 		}
 	}
 	
+	/**
+	 * Gets a request from the head of the request queue.
+	 * @return The request from the head of the request queue.
+	 */
 	public Request getRequest()
 	{
 		try {

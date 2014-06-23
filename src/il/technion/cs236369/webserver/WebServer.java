@@ -56,11 +56,17 @@ public class WebServer extends AbstractWebServer {
 		// Add your code here
 	}
 
+	/**
+	 * The required bind method.
+	 */
 	@Override
 	public void bind() throws IOException {
 		ssock = srvSockFactory.createServerSocket(port);
 	}
 
+	/**
+	 * The required start method.
+	 */
 	@Override
 	public void start() {
 		typeHandlerMapper();
@@ -86,6 +92,11 @@ public class WebServer extends AbstractWebServer {
 		}
 	}
 
+	/**
+	 * Sends an error that the server has reached its capacity.
+	 * @param s The socket.
+	 * @throws Exception May throw an exception.
+	 */
 	private void returnErrorCapacity(Socket s) throws Exception
 	{
 		DefaultBHttpServerConnection conn = new DefaultBHttpServerConnection(SocketReader.BUFSIZE);
@@ -94,6 +105,9 @@ public class WebServer extends AbstractWebServer {
 				"The server is unavailable. Try again later", conn);
 	}
 	
+	/**
+	 * Initializes the socket readers.
+	 */
 	private void initSocketReaders()
 	{
 		socketReaders = new Thread[numSocketReaders];
@@ -104,6 +118,9 @@ public class WebServer extends AbstractWebServer {
 		}
 	}
 	
+	/**
+	 * Initialize the request handlers.
+	 */
 	private void initRequestHandlers()
 	{
 		requestHandlers = new Thread[numRequestHandlers];
@@ -115,6 +132,11 @@ public class WebServer extends AbstractWebServer {
 		}
 	}
 	
+	/**
+	 * The given main method.
+	 * @param args
+	 * @throws Exception May throw an exception.
+	 */
 	public static void main(String[] args) throws Exception {
 		Properties p = new Properties();
 		p.load(new FileInputStream("config"));
@@ -159,6 +181,7 @@ public class WebServer extends AbstractWebServer {
 				if (currSubNL2.getLocalName() != null) {
 					NamedNodeMap atts = currSubNL2.getAttributes();
 					String currClassToDynamicallyLoad = atts.item(0).getNodeValue();
+//					currClassToDynamicallyLoad = "il.technion." + currClassToDynamicallyLoad;
 					NodeList map = currSubNL2.getChildNodes();
 					for (int j = 0; j < map.getLength(); ++j) {
 						String lName = map.item(j).getLocalName();

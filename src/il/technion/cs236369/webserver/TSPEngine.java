@@ -42,12 +42,22 @@ public class TSPEngine implements TypeHandler{
 		sessionManager = SessionManager.getInstance();
 	}
 	
+	/**
+	 * Wrapper method taken from the TypeHandler interface.
+	 */
 	@Override
 	public OutputStream handle(Request request, HashMap<String, String> urlQueryParameters, Session session)
 	{
 		return parse(request.getRequestedPath(), urlQueryParameters, session);
 	}
 	
+	/**
+	 * Parse a TSP file.
+	 * @param tspPath The path of the TSP file.
+	 * @param params The request parameters.
+	 * @param session The session.
+	 * @return Returns the fully converted TSP file.
+	 */
 	private OutputStream parse(String tspPath, HashMap<String, String> params, Session session)
 	{
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -114,6 +124,12 @@ public class TSPEngine implements TypeHandler{
 		return baos;
 	}
 	
+	/**
+	 * Writes a new java file.
+	 * @param content The content to write.
+	 * @param path The path of the new file.
+	 * @return Success - yes or no.
+	 */
 	private boolean createJavaFile(String content, String path)
 	{
 		BufferedWriter writer = null;
@@ -138,6 +154,13 @@ public class TSPEngine implements TypeHandler{
 		}
 	}
 	
+	/**
+	 * Borrowed from the examples package.  Compiles and loads a TSP translator class.
+	 * @param srcPath
+	 * @param qualifiedClassName
+	 * @return
+	 * @throws ClassNotFoundException
+	 */
 	private Class<?> compileAndLoad(String srcPath,String qualifiedClassName) throws ClassNotFoundException {
 		Iterable<? extends JavaFileObject> units = manager
 				.getJavaFileObjects(srcPath);
@@ -148,7 +171,7 @@ public class TSPEngine implements TypeHandler{
 			System.out.println("Compilation failed");
 			return null;
 		} else {
-			System.out.printf("Compilation successful!!!\n");
+			System.out.printf("Compilation successful.\n");
 		}
 
 		return manager.getClassLoader(
@@ -156,6 +179,9 @@ public class TSPEngine implements TypeHandler{
 						qualifiedClassName);
 	}
 	
+	/**
+	 * Closes the JavaFileManager.
+	 */
 	@Override
 	protected void finalize() throws Throwable {
 		if (manager != null)

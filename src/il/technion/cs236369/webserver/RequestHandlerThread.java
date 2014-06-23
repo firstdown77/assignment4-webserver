@@ -2,7 +2,6 @@ package il.technion.cs236369.webserver;
 
 import java.io.File;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -42,6 +41,9 @@ public class RequestHandlerThread extends Thread{
 		this.sessManager = SessionManager.getInstance();
 	}
 	
+	/**
+	 * The central request handle thread method.
+	 */
 	public void run()
 	{
 		while (running)
@@ -67,6 +69,7 @@ public class RequestHandlerThread extends Thread{
 					int i = r.getRequestedPath().lastIndexOf('.');
 					if (i > 0) {
 					    extension = r.getRequestedPath().substring(i+1);
+					    extension = extension.split("/")[0];
 					}
 					if (extension.length() > 0)
 					{
@@ -117,11 +120,22 @@ public class RequestHandlerThread extends Thread{
 		}
 	}
 	
+	/**
+	 * Determines if the requested file extension is included in 
+	 * a type handler list of extensions.
+	 * @param extension The extension to check.
+	 * @return Yes or no - the extension is contained in the list.
+	 */
 	private boolean redirectToTypeHandler(String extension)
 	{
 		return (extensionsToClass.containsKey(extension));
 	}
 	
+	/**
+	 * Adds headers to the response.
+	 * @param response The response to append headers to.
+	 * @param mimeType The mime type of the content.
+	 */
 	private static void addHeaders(HttpResponse response, String mimeType)
 	{
 		response.addHeader("Connection", "close");
@@ -132,6 +146,12 @@ public class RequestHandlerThread extends Thread{
 			response.addHeader("Content-Type", mimeType);
 	}
 	
+	/**
+	 * If the request file is a directory, send its contents.
+	 * @param conn The server connection.
+	 * @param f The file
+	 * @throws Exception May throw an exception.
+	 */
 	private void sendDirectory(DefaultBHttpServerConnection conn, File f) throws Exception
 	{
 		HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
@@ -160,6 +180,13 @@ public class RequestHandlerThread extends Thread{
 		conn.sendResponseEntity(response);
 	}
 	
+	/**
+	 * The method that sets the response with the requested file content.
+	 * @param conn The server connection.
+	 * @param f The file.
+	 * @param mime The mime type.
+	 * @throws Exception May throw an exception.
+	 */
 	private void sendHttpFile(DefaultBHttpServerConnection conn, File f, String mime) throws Exception
 	{
 		HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
@@ -170,6 +197,13 @@ public class RequestHandlerThread extends Thread{
 		conn.sendResponseEntity(response);
 	}
 	
+	/**
+	 * Sends an html file.
+	 * @param conn The server connection.
+	 * @param p The output stream to send.
+	 * @param newCookie A set-cookie header value.
+	 * @throws Exception May throw an exception.
+	 */
 	private void sendHtml(DefaultBHttpServerConnection conn, OutputStream p, String newCookie) throws Exception
 	{
 		HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
@@ -182,6 +216,14 @@ public class RequestHandlerThread extends Thread{
 		conn.sendResponseEntity(response);
 	}
 
+	/**
+	 * Sends a message that the requested resource was unavailable.
+	 * @param status The response status.
+	 * @param title The title of the message.
+	 * @param message The content of the message.
+	 * @param conn The server connection.
+	 * @throws Exception May throw an exception.
+	 */
 	public static void sendHttpMessage(int status, String title, String message, DefaultBHttpServerConnection conn) throws Exception
 	{
 		HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
@@ -197,6 +239,13 @@ public class RequestHandlerThread extends Thread{
 		conn.sendResponseEntity(response);
 	}
 	
+	/**
+	 * Pass a request to a type handler.
+	 * @param request The request to pass.
+	 * @param classToLoad The class to load.
+	 * @param jre_path The JRE path.
+	 * @throws Exception May throw an exception.
+	 */
 	private void passTypeHandler(Request request, String classToLoad, String jre_path) throws Exception
 	{
 		Properties pToInclude = new Properties();

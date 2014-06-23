@@ -31,12 +31,21 @@ public class Session implements ISession {
 		this.expiration = currTimeMillis + timeout;
 	}
 	
+	/**
+	 * Gets the session expiration date.
+	 * @return
+	 */
 	public synchronized Date getExpirationDate() {
 		Date d = new Date(expiration);
 		return d;
 	}
 	
+	/**
+	 * Determines if a session has expired.
+	 * @return Yes or no - expired.
+	 */
 	public synchronized boolean isExpired() {
+		System.out.println("in");
 		long currTimeMillis = System.currentTimeMillis();
 		if (currTimeMillis > expiration) {
 			return true;
@@ -44,6 +53,9 @@ public class Session implements ISession {
 		return false;
 	}
 	
+	/**
+	 * Sets a new session header - key to value.
+	 */
 	@Override
 	public synchronized void set(String name, Object val) {
 		if (enabled) {
@@ -54,6 +66,9 @@ public class Session implements ISession {
 		}
 	}
 
+	/**
+	 * Gets a session value by its key.
+	 */
 	@Override
 	public synchronized Object get(String name) {
 		if (enabled) {
@@ -62,6 +77,9 @@ public class Session implements ISession {
 		return null;
 	}
 
+	/**
+	 * Invalidate the session.
+	 */
 	@Override
 	public synchronized void invalidate() {
 		nameToValMap.clear();

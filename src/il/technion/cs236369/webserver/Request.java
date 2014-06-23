@@ -28,6 +28,11 @@ public class Request {
 		this.socket = socket;
 	}
 	
+	/**
+	 * Parse the request parameters.
+	 * @param uri The request path.
+	 * @param postParams The parameters for post requests.
+	 */
 	private void parseParameters(String uri, String postParams)
 	{
 		String[] uriparts = uri.split("\\?");
@@ -43,6 +48,10 @@ public class Request {
 			parseInternalParams(postParams);
 	}
 	
+	/**
+	 * Helper method for parseParameters().
+	 * @param paramStr The url parameters or post parameters.
+	 */
 	private void parseInternalParams(String paramStr)
 	{
 		String[] parameters = paramStr.split("&");

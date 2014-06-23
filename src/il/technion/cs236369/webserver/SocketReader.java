@@ -27,6 +27,9 @@ public class SocketReader extends Thread {
 		this.basedir = baseDir;
 	}
 	
+	/**
+	 * The central read socket method.
+	 */
 	@Override
 	public void run()
 	{
@@ -77,6 +80,11 @@ public class SocketReader extends Thread {
 		}
 	}
 	
+	/**
+	 * Parse the cookies in the request headers.
+	 * @param h The request headers
+	 * @return A map of cookie names to values.
+	 */
 	private Map<String, String> parseCookies(Header[] h)
 	{
 		Map<String, String> cookies = new HashMap<String, String>();
@@ -95,6 +103,9 @@ public class SocketReader extends Thread {
 		return cookies;
 	}
 	
+	/**
+	 * Terminate socket reading.
+	 */
 	public void terminate()
 	{
 		running = false;
