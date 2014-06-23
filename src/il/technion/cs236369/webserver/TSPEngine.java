@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.PrintStream;
 import java.net.URLDecoder;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -15,7 +16,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
-public class TSPEngine {
+public class TSPEngine implements TypeHandler{
 	private String baseDir;
 	//Doubt this is needed: private String classToDynamicallyLoad;
 	private final JavaCompiler compiler;
@@ -35,6 +36,12 @@ public class TSPEngine {
 		if (manager == null)
 			throw new RuntimeException("compiler returned null file manager");
 		sessionManager = SessionManager.getInstance();
+	}
+	
+	@Override
+	public PrintStream handle(Request request, Map<String, String> urlQueryParameters, Session session)
+	{
+		return handleTSP(request, urlQueryParameters, session);
 	}
 	
 	/**

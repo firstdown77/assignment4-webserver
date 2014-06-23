@@ -16,6 +16,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.apache.http.impl.DefaultBHttpServerConnection;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -76,15 +77,23 @@ public class WebServer extends AbstractWebServer {
 				Socket s = ssock.accept();
 				if (!socketQueue.insertSocket(s))
 				{
-					//TODO
-					//Socket queue exceeded capacity. Return error to the client
+					returnErrorCapacity(s);
+					s.close();
 				}
-			} catch (IOException e) {
+			} catch (Exception e) {
 				//e.printStackTrace();
 			}
 		}
 	}
 
+	private void returnErrorCapacity(Socket s) throws Exception
+	{
+		DefaultBHttpServerConnection conn = new DefaultBHttpServerConnection(SocketReader.BUFSIZE);
+		conn.bind(s);
+		RequestHandlerThread.sendHttpMessage(503, "Server unavailable", 
+				"The server is unavailable. Try again later", conn);
+	}
+	
 	private void initSocketReaders()
 	{
 		socketReaders = new Thread[numSocketReaders];

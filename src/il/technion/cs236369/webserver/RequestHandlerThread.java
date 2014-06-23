@@ -1,8 +1,8 @@
 package il.technion.cs236369.webserver;
 
 import java.io.File;
-import java.io.InputStream;
 import java.io.PrintStream;
+import java.lang.reflect.Constructor;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -14,7 +14,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.entity.FileEntity;
-import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.DefaultBHttpServerConnection;
 import org.apache.http.message.BasicHttpResponse;
@@ -81,7 +80,8 @@ public class RequestHandlerThread extends Thread{
 						{
 							if (method.equals("GET"))
 							{
-								sendHttpFile(r.getConn(), f);
+								String mime = extensionsToMimeTypes.get(extension);
+								sendHttpFile(r.getConn(), f, mime);
 							}
 							else
 							{
@@ -92,7 +92,11 @@ public class RequestHandlerThread extends Thread{
 					}
 					else
 					{
-						//Directory
+						if (f.isDirectory())
+						{
+							//Directory
+							sendDirectory(r.getConn(), f);
+						}
 					}
 				}
 				else
@@ -117,7 +121,7 @@ public class RequestHandlerThread extends Thread{
 		return (extensionsToClass.containsKey(extension));
 	}
 	
-	private void addHeaders(HttpResponse response, String mimeType)
+	private static void addHeaders(HttpResponse response, String mimeType)
 	{
 		response.addHeader("Connection", "close");
 		SimpleDateFormat dateFormat = new SimpleDateFormat(HttpDateGenerator.PATTERN_RFC1123);
@@ -127,11 +131,39 @@ public class RequestHandlerThread extends Thread{
 			response.addHeader("Content-Type", mimeType);
 	}
 	
-	private void sendHttpFile(DefaultBHttpServerConnection conn, File f) throws Exception
+	private void sendDirectory(DefaultBHttpServerConnection conn, File f) throws Exception
 	{
 		HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
 		        HttpStatus.SC_OK, "OK") ;
-		addHeaders(response, null);
+		addHeaders(response, "text/html");
+		StringBuilder sb = new StringBuilder();
+		sb.append("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">");
+		sb.append("<html xmlns=\"http://www.w3.org/1999/xhtml\">");
+		sb.append("<head><title>Directory</title></head>");
+		sb.append("<body>");
+		if (f.getAbsolutePath().length() > baseDir.length())
+			sb.append("<p>Contents of "+f.getAbsolutePath().substring(baseDir.length())+"</p>");
+		else
+			sb.append("<p>Contents</p>");
+		
+		File[] files = f.listFiles();
+		for (File fil: files)
+		{
+			String path = fil.getAbsolutePath().substring(baseDir.length());
+			sb.append("<p><a href=\""+path+"\">"+fil.getName()+"</></p>");
+		}
+		
+		sb.append("</body></html>");
+		response.setEntity(new StringEntity(sb.toString()) );
+		conn.sendResponseHeader(response);
+		conn.sendResponseEntity(response);
+	}
+	
+	private void sendHttpFile(DefaultBHttpServerConnection conn, File f, String mime) throws Exception
+	{
+		HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+		        HttpStatus.SC_OK, "OK") ;
+		addHeaders(response, mime);
 		response.setEntity(new FileEntity(f) );
 		conn.sendResponseHeader(response);
 		conn.sendResponseEntity(response);
@@ -149,7 +181,7 @@ public class RequestHandlerThread extends Thread{
 		conn.sendResponseEntity(response);
 	}
 
-	private void sendHttpMessage(int status, String title, String message, DefaultBHttpServerConnection conn) throws Exception
+	public static void sendHttpMessage(int status, String title, String message, DefaultBHttpServerConnection conn) throws Exception
 	{
 		HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
 		        status, message) ;
@@ -171,8 +203,16 @@ public class RequestHandlerThread extends Thread{
 		pToInclude.setProperty("classToDynamicallyLoad", classToLoad);
 		pToInclude.setProperty("baseDir", baseDir);
 		
-		pToInclude.setProperty("jre_path", jre_path);
-		TSPEngine handler = new TSPEngine(pToInclude);
+		if (jre_path != null)
+			pToInclude.setProperty("jre_path", jre_path);
+		
+		Class<?> myClass = Class.forName(classToLoad);
+		Class[] types = {Properties.class};
+		Constructor<?> constructor = myClass.getConstructor(types);
+		Object[] parameters = {pToInclude};
+		Object instanceOfMyClass = constructor.newInstance(parameters);
+		TypeHandler handler = (TypeHandler) instanceOfMyClass;
+		
 		String uuid = request.getCookies().get("UUID");
 		
 		//Create new session if not existent
@@ -193,7 +233,7 @@ public class RequestHandlerThread extends Thread{
 			newCookie = "UUID="+s.getID()+"; Expires="+dateFormat.format(s.getExpirationDate())+";";
 		}
 		
-		PrintStream ps = handler.handleTSP(request, request.getGetParameters(), s);
+		PrintStream ps = handler.handle(request, request.getGetParameters(), s);
 		sendHtml(request.getConn(), ps, newCookie);
 	}
 	
